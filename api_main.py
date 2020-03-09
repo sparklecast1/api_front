@@ -157,6 +157,11 @@ def delete_task(task_id):
     else:
         return jsonify({'result': False}), 500
 
+@app.route('/')
+def alive_task():
+    return 'im alive\n'
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=80, host='0.0.0.0')
+    #app.run(debug=True)

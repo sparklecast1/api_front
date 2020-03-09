@@ -5,4 +5,4 @@ curl -i -H "Content-Type: application/json" -X POST -d "{"""title""":"""test"""}
 
 
 docker build -t api/front:0.1 .
-docker run -d --name=test api/front:0.1
+docker run -d -p 80:80 --name=test api/front:0.1

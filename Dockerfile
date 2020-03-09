@@ -5,7 +5,7 @@ FROM python:3.8.2-alpine3.10
 
 WORKDIR /opt/app
 COPY . .
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r req.txt
 EXPOSE 5000
 
 ENTRYPOINT ["python3", "./api_main.py"]

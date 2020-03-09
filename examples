@@ -1,0 +1,8 @@
+https://habr.com/ru/post/246699/
+
+
+curl -i -H "Content-Type: application/json" -X POST -d "{"""title""":"""test"""}" http://localhost:5000/api/v1.0/tasks
+
+
+docker build -t api/front:0.1 .
+docker run -d --name=test api/front:0.1

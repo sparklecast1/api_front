@@ -1,7 +1,10 @@
 #!flask/bin/python
+from time import sleep
+import json
+
 from flask import Flask, jsonify, abort, request, make_response, url_for
-from flask_httpauth import HTTPBasicAuth
 from kafka import KafkaProducer
+from kafka.errors import KafkaError
 #import kafka
 import os
 import logging
@@ -11,11 +14,15 @@ import logging
 # envoronment
 #producer = KafkaProducer(bootstrap_servers=os.environ['KAFKA_SERVER'])
 #topic = os.environ['KAFKA_TOPIC']
-producer = KafkaProducer(bootstrap_servers='192.168.99.117:9092')
-topic = "api_front"
+producer = KafkaProducer(bootstrap_servers='192.168.99.117:9092',
+                         value_serializer=lambda x:
+                         json.dumps(x).encode('utf-8'))
+topic = 'api_front'
+
+
 
 app = Flask(__name__, static_url_path="")
-#auth = HTTPBasicAuth()
+
 
 
 def get_module_logger(mod_name):
@@ -34,16 +41,24 @@ def get_module_logger(mod_name):
 
 
 def kafka_prodecer_send(to_topic, data):
-    message = b'msg %d' % data
-    future = producer.send(topic, bytes(message, encoding='utf-8'))
-    record_metadata = future.get(timeout=5)
+    print("Kafka send data")
+    future = producer.send(to_topic, value=data)
+    try:
+        record_metadata = future.get(timeout=5)
+        return 1
+    except KafkaError:
+        #log.exception()
+        print("Warn: error timeout")
+        pass
+    return 0
 
 
 
+'''
 @app.errorhandler(400)
 def not_found(error):
     return make_response(jsonify({'error': 'Bad request'}), 400)
-
+'''
 
 @app.errorhandler(404)
 def not_found(error):
@@ -78,22 +93,24 @@ def get_task(task_id):
 @app.route('/api/v1.0/tasks', methods=['POST'])
 def create_task():
     if not request.json or not 'title' in request.json:
-       abort(400)
+        abort(400)
     task = {
         'task': "create",
         'title': request.json['title'],
         'description': request.json.get('description', "")
     }
-    kafka_prodecer_send("api", task)
-    print("Debug: create {}".format(task))
-    return jsonify({'result': True}), 201
+    if kafka_prodecer_send(topic, task):
+        print("Debug: create {}".format(str(task)))
+        return jsonify({'result': True}), 201
+    else:
+        return jsonify({'result': False}), 500
 
 
 @app.route('/api/v1.0/tasks/<int:task_id>', methods=['PUT'])
 def update_task(task_id):
-    task = filter(lambda t: t['id'] == task_id, tasks)
-    if len(task) == 0:
-        abort(404)
+    #task = filter(['id'] == task_id)
+    #if len(task) == 0:
+    #    abort(404)
     if not request.json:
         abort(400)
     if 'title' in request.json and type(request.json['title']) != unicode:
@@ -111,9 +128,13 @@ def update_task(task_id):
         'title': request.json.get('title', task[0]['title']),
         'description': request.json.get('description', task[0]['description'])
     }
-    kafka_prodecer_send("api", task)
-    print("Debug: put {}".format(task))
-    return jsonify({'result': True}), 201
+    kafka_prodecer_send(topic, task)
+
+    if kafka_prodecer_send(topic, task):
+        print("Debug: put {}".format(str(task)))
+        return jsonify({'result': True}), 200
+    else:
+        return jsonify({'result': False}), 500
    # return jsonify({'task': make_public_task(task[0])})
 
 
@@ -128,9 +149,13 @@ def delete_task(task_id):
         'task': "delete",
         'id': task_id
     }
-    kafka_prodecer_send("api", task)
-    print("Debug: delete {}".format(task))
-    return jsonify({'result': True}), 201
+    kafka_prodecer_send(topic, task)
+
+    if kafka_prodecer_send(topic, task):
+        print("Debug: delete {}".format(str(task)))
+        return jsonify({'result': True}), 200
+    else:
+        return jsonify({'result': False}), 500
 
 
 if __name__ == '__main__':

@@ -3,9 +3,11 @@ from time import sleep
 import json
 
 from flask import Flask, jsonify, abort, request, make_response, url_for
-from kafka import KafkaProducer
+#from kafka import KafkaProducer
+
+#from pykafka import KafkaClient
 from kafka.errors import KafkaError
-#import kafka
+import kafka
 import os
 import logging
 
@@ -14,9 +16,9 @@ import logging
 # envoronment
 #producer = KafkaProducer(bootstrap_servers=os.environ['KAFKA_SERVER'])
 #topic = os.environ['KAFKA_TOPIC']
-producer = KafkaProducer(bootstrap_servers='192.168.99.117:9092',
-                         value_serializer=lambda x:
-                         json.dumps(x).encode('utf-8'))
+#producer = KafkaProducer(bootstrap_servers='192.168.99.117:9092,192.168.99.123:9092,192.168.99.122:9092',
+#                         value_serializer=lambda x:
+#                        json.dumps(x).encode('utf-8'))
 topic = 'api_front'
 
 
@@ -42,15 +44,29 @@ def get_module_logger(mod_name):
 
 def kafka_prodecer_send(to_topic, data):
     print("Kafka send data")
-    future = producer.send(to_topic, value=data)
-    try:
-        record_metadata = future.get(timeout=5)
-        return 1
-    except KafkaError:
-        #log.exception()
-        print("Warn: error timeout")
-        pass
-    return 0
+
+    #producer = KafkaProducer(bootstrap_servers='192.168.99.117:9092', value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+
+    #future = producer.send(to_topic, data)
+    producer = KafkaProducer(bootstrap_servers='192.168.99.117:9092,192.168.99.123:9092,192.168.99.122:9092')
+    #client = KafkaClient(hosts="192.168.99.117:9092,192.168.99.123:9092,192.168.99.122:9092")
+    #print("connect")
+    #print(client.topics)
+    topic = client.topics[to_topic]
+
+
+    #with topic.get_sync_producer() as producer:
+    #    for i in range(4):
+    #        producer.produce('test message ' + str(i ** 2))
+        #producer.produce(data)
+
+    #message = f'test message'
+    future = producer.send(to_topic, bytes(data, encoding='utf-8'))
+    record_metadata = future.get(timeout=60)
+    #print("topic name =", record_metadata.topic, "  partition name =", record_metadata.partition, "  offset =",
+    #      record_metadata.offset, "  message =", message)
+    #future = producer.send(to_topic, value=data)
+    return 1
 
 
 
@@ -163,5 +179,5 @@ def alive_task():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=80, host='0.0.0.0')
-    #app.run(debug=True)
+    #app.run(debug=True, port=80, host='0.0.0.0')
+    app.run(debug=True)

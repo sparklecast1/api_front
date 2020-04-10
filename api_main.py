@@ -52,7 +52,7 @@ def kafka_prodecer_send(to_topic, data):
     #client = KafkaClient(hosts="192.168.99.117:9092,192.168.99.123:9092,192.168.99.122:9092")
     #print("connect")
     #print(client.topics)
-    topic = client.topics[to_topic]
+    #topic = client.topics[to_topic]
 
 
     #with topic.get_sync_producer() as producer:

@@ -5,4 +5,4 @@ curl -i -H "Content-Type: application/json" -X POST -d "{"""title""":"""test"""}
 
 
 docker build -t api/front:0.1 .
-docker run -d -p 80:80 --name=test api/front:0.1
+docker run -d -p 80:80 --name=test --restart=on-failure:5 --memory=128m --cpu-period=100000 --cpu-quota=50000 api/front:0.1

@@ -3,10 +3,10 @@ from time import sleep
 import json
 
 from flask import Flask, jsonify, abort, request, make_response, url_for
-#from kafka import KafkaProducer
+from kafka import KafkaProducer
 
 #from pykafka import KafkaClient
-from kafka.errors import KafkaError
+#from kafka.errors import KafkaError
 import kafka
 import os
 import logging

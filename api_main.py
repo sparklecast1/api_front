@@ -14,7 +14,7 @@ import logging
 #topic = os.environ['KAFKA_TOPIC']
 topic = "api_front"
 KAFKA_PROXY = '192.168.99.117'
-TCP_PORT = 433
+TCP_PORT = 4443
 BUFFER_SIZE = 1024
 
 
@@ -41,7 +41,9 @@ def kafka_producer_send(MESSAGE):
     print("send data")
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((KAFKA_PROXY, TCP_PORT))
-    s.send(str.encode(MESSAGE))
+    #mess_byte = json.dumps(MESSAGE).encode('utf-8')
+    s.send(json.dumps(MESSAGE).encode('utf-8'))
+    #s.send(MESSAGE)
     data = s.recv(BUFFER_SIZE)
     s.close()
     print("received data:", data)

@@ -1,0 +1,34 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+
+variables:
+  #DOCKER_HOST: tcp://thedockerhost:2375/
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+before_script:
+  - docker info
+
+stages:
+  - build
+  - test
+  - deploy
+
+
+build:
+  stage: build
+  script:
+    - docker build -t api/front:0.1 .
+
+test:
+  stage: test
+  script:
+    - echo 'test'
+
+deploy:
+  stage: deploy
+  script:
+    - echo 'test'

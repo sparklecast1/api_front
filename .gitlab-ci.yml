@@ -10,7 +10,10 @@ variables:
   DOCKER_TLS_CERTDIR: ""
 
 before_script:
+  #- echo '192.168.56.131 gitlab.local gitlab' >> /etc/hosts
+  - env
   - docker info
+  - docker login -u $USERNAME -p $PASSWORD
 
 stages:
   - build
@@ -18,11 +21,27 @@ stages:
   - deploy
 
 
-build:
+build_master:
   stage: build
   script:
-    - docker build -t api/front:0.1 .
-
+    - echo $CI_JOB_STAGE
+    - docker pull $CI_PROJECT_PATH:latest || true
+    - docker build --cache-from $CI_PROJECT_PATH:latest --tag $CI_PROJECT_PATH:$CI_BUILD_TAG --tag $CI_PROJECT_PATH:latest .
+    - docker push $CI_PROJECT_PATH:$CI_BUILD_TAG
+    - docker push $CI_PROJECT_PATH:latest
+  only: ['master', 'tags']
+    
+build_dev:
+  stage: build
+  script:
+    - echo $CI_JOB_STAGE
+    - docker pull $CI_PROJECT_PATH:latest || true
+    - docker build --cache-from $CI_PROJECT_PATH:latest --tag $CI_PROJECT_PATH:$CI_COMMIT_REF_NAME --tag $CI_PROJECT_PATH:latest .
+    - docker push $CI_PROJECT_PATH:$CI_COMMIT_REF_NAME
+    - docker push $CI_PROJECT_PATH:latest
+  only:
+    - dev
+  
 test:
   stage: test
   script:
